@@ -2,7 +2,7 @@
 {% load i18n %}
 
 {% block form_id %}policy_rules_form{% endblock %}
-{% block form_action %}{% url 'horizon:project:networking:edit_policy_rules' policy.id %}{% endblock %}
+{% block form_action %}{% url horizon:project:networking:edit_policy_rules policy.id %}{% endblock %}
 {% block form_class %}{{ block.super }} horizontal split_five{% endblock %}
 
 {% block modal_id %}policy_rule_modal{% endblock %}
@@ -16,5 +16,5 @@
 
 {% block modal-footer %}
   <input class="btn btn-primary pull-right" type="submit" value="{% trans "Add Rule" %}" />
-  <a href="{% url 'horizon:project:networking:index' %}" class="btn secondary cancel close">{% trans "Cancel" %}</a>
+  <a href="{% url horizon:project:networking:index %}" class="btn secondary cancel close">{% trans "Cancel" %}</a>
 {% endblock %}

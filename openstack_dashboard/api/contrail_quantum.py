@@ -20,18 +20,18 @@ import logging
 import pdb
 
 from netaddr import *
-from neutronclient.v2_0 import client as neutron_client
+from quantumclient.v2_0 import client as quantum_client
 from django.utils.datastructures import SortedDict
 
 from openstack_dashboard.api.base import APIDictWrapper, url_for
 
-from openstack_dashboard.api.neutron import *
+from openstack_dashboard.api.quantum import *
 
 LOG = logging.getLogger(__name__)
 
 
-class ExtensionsContrailNet(NeutronAPIDictWrapper):
-    """Wrapper for contrail neutron Networks"""
+class ExtensionsContrailNet(QuantumAPIDictWrapper):
+    """Wrapper for contrail quantum Networks"""
     _attrs = ['name', 'id', 'subnets', 'tenant_id', 'status',
               'admin_state_up', 'shared', 'contrail:instance_count',
               'contrail:policys', 'contrail:subnet_ipam']
@@ -60,7 +60,7 @@ class ExtensionsContrailNet(NeutronAPIDictWrapper):
 
 def network_summary(request, **params):
     LOG.debug("network_summary(): params=%s" % (params))
-    networks = neutronclient(request).list_networks(**params).get('networks')
+    networks = quantumclient(request).list_networks(**params).get('networks')
     return [ExtensionsContrailNet(n) for n in networks]
 
 
@@ -72,7 +72,7 @@ def network_summary_for_tenant(request, tenant_id, **params):
     LOG.debug("network_summary_for_tenant(): tenant_id=%s, params=%s"
               % (tenant_id, params))
 
-    # If a user has admin role, network list returned by Neutron API
+    # If a user has admin role, network list returned by Quantum API
     # contains networks that do not belong to that tenant.
     # So we need to specify tenant_id when calling network_list().
     networks = network_summary(request, tenant_id=tenant_id,
@@ -84,13 +84,13 @@ def network_summary_for_tenant(request, tenant_id, **params):
 def network_summary_get(request, network_id, **params):
     LOG.debug("network_summary_get(): netid=%s, params=%s" %
               (network_id, params))
-    network = neutronclient(request).show_network(network_id,
+    network = quantumclient(request).show_network(network_id,
                                                   **params).get('network')
     return ExtensionsContrailNet(network)
 
 
-class ExtensionsContrailIPBlock(NeutronAPIDictWrapper):
-    """Wrapper for contrail neutron IP Blocks"""
+class ExtensionsContrailIPBlock(QuantumAPIDictWrapper):
+    """Wrapper for contrail Quantum IP Blocks"""
     _attrs = ['name', 'enable_dhcp', 'network_id', 'tenant_id','gateway_ip'
               'contrail:ipam_fq_name','allocation_pools', 'ip_version',
               'cidr', 'contrail:instance_count', 'id']
@@ -109,12 +109,12 @@ class ExtensionsContrailIPBlock(NeutronAPIDictWrapper):
 
 def ip_block_summary(request, **params):
     LOG.debug("ip_block_summary(): params=%s" % (params))
-    ip_blocks = neutronclient(request).list_subnets(**params).get('subnets')
+    ip_blocks = quantumclient(request).list_subnets(**params).get('subnets')
     return [ExtensionsContrailIPBlock(i) for i in ip_blocks]
 
 
-class ExtensionsContrailNetInstances(NeutronAPIDictWrapper):
-    """Wrapper for contrail neutron instances for a network"""
+class ExtensionsContrailNetInstances(QuantumAPIDictWrapper):
+    """Wrapper for contrail quantum instances for a network"""
     _attrs = ['name', 'id', 'network_id', 'tenant_id',
               'admin_state_up','status', 'fixed_ips'
               'mac_address', 'device_id']
@@ -132,12 +132,12 @@ class ExtensionsContrailNetInstances(NeutronAPIDictWrapper):
 
 def net_instances_summary(request, **params):
     LOG.debug("net_instances_summary(): params=%s" % (params))
-    instances = neutronclient(request).list_ports(**params).get('ports')
+    instances = quantumclient(request).list_ports(**params).get('ports')
     return [ExtensionsContrailNetInstances(i) for i in instances]
 
 
-class ExtensionsContrailIpam(NeutronAPIDictWrapper):
-    """Wrapper for contrail neutron ipam"""
+class ExtensionsContrailIpam(QuantumAPIDictWrapper):
+    """Wrapper for contrail Quantum ipam"""
     _attrs = ['name', 'id', 'mgmt', 'tenant_id']
 
     def __init__(self, apiresource):
@@ -159,7 +159,7 @@ class ExtensionsContrailIpam(NeutronAPIDictWrapper):
 
 def ipam_summary(request, **params):
     LOG.debug("ipam_summary(): params=%s" % (params))
-    ipams = neutronclient(request).list_ipams(**params).get('ipams')
+    ipams = quantumclient(request).list_ipams(**params).get('ipams')
     return [ExtensionsContrailIpam(n) for n in ipams]
 
 
@@ -180,7 +180,7 @@ def ipam_show(request, ipam_id, **params):
     """Return an IPAM object with the requested id.
     """
     LOG.debug("ipam_show(): id = %s, params=%s" % (ipam_id, params))
-    ipam = neutronclient(request).show_ipam(ipam_id, **params).get('ipam')
+    ipam = quantumclient(request).show_ipam(ipam_id, **params).get('ipam')
 
     return ExtensionsContrailIpam(ipam)
 
@@ -209,24 +209,24 @@ def ipam_create(request, name, **kwargs):
     body = {'ipam':
                 {'name': name}}
     body['ipam'].update(kwargs)
-    ipam = neutronclient(request).create_ipam(body=body).get('ipam')
+    ipam = quantumclient(request).create_ipam(body=body).get('ipam')
     return ExtensionsContrailIpam(ipam)
 
 
 def ipam_modify(request, ipam_id, **kwargs):
     LOG.debug("ipam_modify(): ipam-id=%s, kwargs=%s" % (ipam_id, kwargs))
     body = {'ipam': kwargs}
-    ipam = neutronclient(request).update_ipam(ipam_id,
+    ipam = quantumclient(request).update_ipam(ipam_id,
                                               body=body).get('ipam')
     return ExtensionsContrailIpam(ipam)
 
 
 def ipam_delete(request, ipam_id):
     LOG.debug("ipam_delete(): ipam-id=%s" % ipam_id)
-    neutronclient(request).delete_ipam(ipam_id)
+    quantumclient(request).delete_ipam(ipam_id)
 
-class ExtensionsContrailPolicy(NeutronAPIDictWrapper):
-    """Wrapper for contrail neutron network policies"""
+class ExtensionsContrailPolicy(QuantumAPIDictWrapper):
+    """Wrapper for contrail Quantum network policies"""
     _attrs = ['name', 'fq_name', 'id', 'entries', 'tenant_id', 'nets_using']
 
     def __init__(self, apiresource):
@@ -257,7 +257,7 @@ class ExtensionsContrailPolicy(NeutronAPIDictWrapper):
 
 def policy_summary(request, **params):
     LOG.debug("policy_summary(): params=%s" % (params))
-    policies = neutronclient(request).list_policys(**params).get('policys')
+    policies = quantumclient(request).list_policys(**params).get('policys')
     return [ExtensionsContrailPolicy(p) for p in policies]
 
 
@@ -283,25 +283,25 @@ def policy_create(request, name, **kwargs):
     LOG.debug("policy_create(): name=%s, kwargs=%s" % (name, kwargs))
     body = {'policy': {'name': name,
               'entries': {}}}
-    policy = neutronclient(request).create_policy(body=body).get('policy')
+    policy = quantumclient(request).create_policy(body=body).get('policy')
     return ExtensionsContrailPolicy(policy)
 
 
 def policy_delete(request, policy_id):
     LOG.debug("policy_delete(): policy-id=%s" % policy_id)
-    neutronclient(request).delete_policy(policy_id)
+    quantumclient(request).delete_policy(policy_id)
 
 def policy_show(request, policy_id, **params):
     LOG.debug("policy_summary_get(): pol-id=%s, params=%s" %
               (policy_id, params))
-    policy = neutronclient(request).show_policy(policy_id,
+    policy = quantumclient(request).show_policy(policy_id,
                                                   **params).get('policy')
     return ExtensionsContrailPolicy(policy)
 
 def policy_modify(request, policy_id, **kwargs):
     LOG.debug("policy_modify(): policy-id=%s, kwargs=%s" % (policy_id, kwargs))
     body   = {'policy': kwargs}
-    policy = neutronclient(request).update_policy(policy_id,
+    policy = quantumclient(request).update_policy(policy_id,
                                               body=body).get('policy')
     return ExtensionsContrailPolicy(policy)
 

@@ -22,7 +22,7 @@ import logging
 from django.utils.translation import ugettext_lazy as _
 from django.core.urlresolvers import reverse_lazy
 
-from openstack_dashboard.api.neutron import *
+from openstack_dashboard.api.quantum import *
 from contrail_openstack_dashboard.openstack_dashboard.api.contrail_quantum import *
 from horizon import exceptions
 from horizon import tables

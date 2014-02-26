@@ -21,7 +21,7 @@ from django.core import urlresolvers
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
 
-from openstack_dashboard.api.neutron import *
+from openstack_dashboard.api.quantum import *
 from contrail_openstack_dashboard.openstack_dashboard.api.contrail_quantum import *
 from openstack_dashboard.dashboards.project import dashboard
 from horizon import tables
