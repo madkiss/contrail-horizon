@@ -18,7 +18,7 @@ from django.utils.translation import ugettext_lazy as _  # noqa
 
 from horizon import exceptions
 from horizon import forms
-from horizon.utils import fields
+from horizon.forms import fields
 from horizon.utils import validators
 from horizon import workflows
 
